@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const hashValue = require('.../helpers/cyphers')
+const hashValue = require('.../helpers/cyphers');
+const { immutableCondition } = require('.../helpers/database');
 
 const UserSchema = new mongoose.model({
     username: {
@@ -7,17 +8,20 @@ const UserSchema = new mongoose.model({
         required: [true, "Please enter a username"],
         maxLength: [30, "Username cannot exceed 30 characters"],
         minLength: [4, "Username should have more than 4 characters"],
-        unique: [true, "This username is already in use"]
+        unique: [true, "This username is already in use"],
+        immutable: immutableCondition
     },
     email: {
         type: String,
         required: [true, "Please enter a valid email address"],
         unique: [true, "This email address is already in use"],
+        immutable: immutableCondition
     },
     register_provider: {
         type: String,
         enum: ["hobbyland", "google"],
-        default: "hobbyland"
+        default: "hobbyland",
+        immutable: immutableCondition
     },
     phone_number: {
         prefix: String,
@@ -34,7 +38,7 @@ const UserSchema = new mongoose.model({
         type: String,
         minLength: [8, "Password should be greater than 8 characters"],
         set: hashValue,
-        immutable: true
+        immutable: immutableCondition
     },
     firstname: {
         type: String
@@ -48,27 +52,32 @@ const UserSchema = new mongoose.model({
     },
     account_type: {
         type: String,
-        enum: ["student", "mentor", "agency"],
-        default: "student"
+        enum: ["student", "mentor"],
+        default: "student",
+        immutable: immutableCondition
     },
     agency: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    },
-    members: [
-        {
+        agency_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        }
-    ],
-    level: Number,
+            ref: "Agency"
+        },
+        role: String,
+    },
+    level: {
+        type: Number,
+        immutable: immutableCondition
+    },
     two_fa: {
         secret: {
             type: String,
             minLength: 20,
-            select: false
+            select: false,
+            immutable: immutableCondition
         },
-        activation_date: Date,
+        register_date: {
+            type: Date,
+            immutable: immutableCondition
+        },
         enabled: {
             type: Boolean,
             default: false

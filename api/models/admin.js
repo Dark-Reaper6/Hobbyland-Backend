@@ -36,6 +36,18 @@ const AdminSchema = new mongoose.Schema({
     gender: {
         type: String
     },
+    two_fa: {
+        secret: {
+            type: String,
+            minLength: 20,
+            select: false
+        },
+        activation_date: Date,
+        enabled: {
+            type: Boolean,
+            default: false
+        }
+    },
     is_active: {
         type: Boolean,
         default: true

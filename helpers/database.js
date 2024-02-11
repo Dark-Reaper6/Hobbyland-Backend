@@ -21,7 +21,13 @@ const DisconnectDB = async () => {
     }
 };
 
+const immutableCondition = (doc) => {
+    const { immutability } = doc.options;
+    return !(immutability && immutability === "disable")
+}
+
 module.exports = {
     ConnectDB,
-    DisconnectDB
+    DisconnectDB,
+    immutableCondition
 };
