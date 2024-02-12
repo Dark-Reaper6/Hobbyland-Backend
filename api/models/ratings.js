@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 const RatingsScehma = new mongoose.Schema({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
+        ref: "User",
+        immutable: immutableCondition
     },
     ratings: [
         {

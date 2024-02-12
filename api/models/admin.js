@@ -7,17 +7,20 @@ const AdminSchema = new mongoose.Schema({
         required: [true, "Please enter a username"],
         maxLength: [30, "Username cannot exceed 30 characters"],
         minLength: [4, "Username should have more than 4 characters"],
-        unique: [true, "This username is already in use"]
+        unique: [true, "This username is already in use"],
+        immutable: immutableCondition
     },
     email: {
         type: String,
         required: [true, "Please enter a valid email address"],
         unique: [true, "This email address is already in use"],
+        immutable: immutableCondition
     },
     role: {
         type: String,
         enum: ["administrator", "maintainer", "support"],
-        default: "maintainer"
+        default: "maintainer",
+        immutable: immutableCondition
     },
     profile_image: {
         type: String
@@ -41,7 +44,8 @@ const AdminSchema = new mongoose.Schema({
         secret: {
             type: String,
             minLength: 20,
-            select: false
+            select: false,
+            immutable: immutableCondition
         },
         activation_date: Date,
         enabled: {

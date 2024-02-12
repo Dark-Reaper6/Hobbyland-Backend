@@ -5,6 +5,7 @@ const VerificationDocumentSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        immutable: immutableCondition
     },
     documents: [
         {
@@ -33,9 +34,11 @@ const VerificationDocumentSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false,
+        immutable: immutableCondition
     },
     verificationDate: {
         type: Date,
+        immutable: immutableCondition
     }
 });
 

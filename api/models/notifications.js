@@ -4,7 +4,8 @@ const { immutableCondition } = require('../../helpers/database');
 const NotificationsSchema = new mongoose.Schema({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        immutable: immutableCondition
     },
     notifications: [
         {
