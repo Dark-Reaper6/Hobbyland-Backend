@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const ConnectDB = require('./helpers/database');
+const { ConnectDB } = require('./helpers/database');
 
 const server = express();
 
@@ -13,8 +13,8 @@ server.use(express.static('public'));
 server.use(morgan('dev'));
 
 // api handlers
-server.use('/api/auth', require('./api/router/auth'));
-server.use('/api/users', require('./api/router/user'));
+server.use('/api/auth', require('./api/routes/auth'));
+server.use('/api/users', require('./api/routes/user'));
 
 // initializing server
 server.listen(process.env.PORT, async () => {

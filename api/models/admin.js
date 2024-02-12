@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { immutableCondition } = require('../../helpers/database');
 
 const AdminSchema = new mongoose.Schema({
     username: {

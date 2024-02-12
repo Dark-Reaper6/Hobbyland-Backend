@@ -4,7 +4,7 @@ const ConnectDB = async () => {
     if (mongoose.connections[0].readyState) return console.log("Success! Connection already exists\n");
     try {
         console.log("Connecting to the database...\n");
-        await mongoose.connect(process.env.MONGO_URI + process.env.DB_NAME);
+        await mongoose.connect(process.env.DATABASE_URI + process.env.DATABASE_NAME);
         console.log("✅ Connected to the MongoDB successfully!\n");
     } catch (error) {
         console.error("❌ Error connecting to MongoDB:", error);

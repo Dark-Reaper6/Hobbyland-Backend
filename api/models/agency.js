@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
-const hashValue = require('.../helpers/cyphers')
+const { immutableCondition } = require('../../helpers/database');
 
-const UserSchema = new mongoose.model({
+const AgencySchema = new mongoose.Schema({
+    owner_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        immutable: immutableCondition
+    },
     name: {
         type: String,
         required: [true, "Please enter an agency name"],
@@ -34,12 +39,6 @@ const UserSchema = new mongoose.model({
     },
     banner_image: {
         type: String
-    },
-    password: {
-        type: String,
-        minLength: [8, "Password should be greater than 8 characters"],
-        set: hashValue,
-        immutable: true
     },
     members: [
         {
@@ -77,4 +76,4 @@ const UserSchema = new mongoose.model({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model("User", UserSchema);
+module.exports = mongoose.model("Agency", AgencySchema);

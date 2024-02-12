@@ -1,5 +1,4 @@
 const User = require(`../models/user`);
-const CryptoJS = require("crypto-js")
 const jwt = require(`jsonwebtoken`);
 
 const login = async (req, res) => {
@@ -36,11 +35,11 @@ const login = async (req, res) => {
 };
 
 
-const create = async (req, res) => {
+const signup = async (req, res) => {
     const createUser = new User(req.body);
     await createUser.save().then((result) => {
         console.log(result)
     }).catch((err) => console.log(err))
 }
 // exporting user controllers as modules
-module.exports = { login, create };
+module.exports = { login, signup };

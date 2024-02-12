@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const hashValue = require('.../helpers/cyphers');
-const { immutableCondition } = require('.../helpers/database');
+const { hashValue } = require('../../helpers/cyphers');
+const { immutableCondition } = require('../../helpers/database');
 
-const UserSchema = new mongoose.model({
+const UserSchema = new mongoose.Schema({
     username: {
         type: String,
         required: [true, "Please enter a username"],
@@ -82,6 +82,11 @@ const UserSchema = new mongoose.model({
             type: Boolean,
             default: false
         }
+    },
+    timezone: {
+        type: String,
+        required: true,
+        immutable: immutableCondition
     },
     is_active: {
         type: Boolean,

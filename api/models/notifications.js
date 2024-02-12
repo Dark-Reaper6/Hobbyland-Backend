@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { immutableCondition } = require('../../helpers/database');
 
 const NotificationsSchema = new mongoose.Schema({
     user_id: {

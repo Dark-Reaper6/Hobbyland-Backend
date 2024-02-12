@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
+const { immutableCondition } = require('../../helpers/database');
 
 const GigSchema = new mongoose.Schema({
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    },
     title: {
         type: String,
         required: true,
