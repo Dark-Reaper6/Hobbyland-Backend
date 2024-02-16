@@ -9,8 +9,8 @@ const server = express();
 
 server.use(cors());
 server.use(cookieParser())
-server.use(express.static('public'));
 server.use(morgan('dev'));
+// server.use(express.static('public'));
 
 // api handlers
 server.use('/api/auth', require('./api/routes/auth'));

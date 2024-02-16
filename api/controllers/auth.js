@@ -1,5 +1,20 @@
 const User = require(`../models/user`);
 const jwt = require(`jsonwebtoken`);
+const StandardApi = require("../middlewares/standard-api");
+const { z } = require("zod");
+
+const signupSchema = z.object({
+    name: z.string().min(3, 'Name must be at least 3 characters long'),
+    email: z.string().email('Invalid email format'),
+    age: z.number().min(18, 'Must be at least 18 years old'),
+    role: z.string().refine((value) => [""].includes(value)),
+    // ...other fields and validations
+});
+const SignUp = async (req, res) => StandardApi(req, res, async () => {
+
+}, { verify_user: false })
+
+
 
 const login = async (req, res) => {
     try {

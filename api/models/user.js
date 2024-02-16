@@ -38,6 +38,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         minLength: [8, "Password should be greater than 8 characters"],
         set: hashValue,
+        select: false,
         immutable: immutableCondition
     },
     firstname: {
@@ -61,7 +62,7 @@ const UserSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Agency"
         },
-        role: String,
+        role: String
     },
     level: {
         type: Number,
@@ -88,6 +89,12 @@ const UserSchema = new mongoose.Schema({
         required: true,
         immutable: immutableCondition
     },
+    social_links: [
+        {
+            name: String,
+            link: String
+        }
+    ],
     is_active: {
         type: Boolean,
         default: true
