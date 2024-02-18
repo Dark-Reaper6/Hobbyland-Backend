@@ -22,12 +22,13 @@ const EncryptOrDecryptData = (data, encrypt = true) => {
     else return CryptoJS.AES.decrypt(data, process.env.APP_SECRET_KEY).toString(CryptoJS.enc.Utf8)
 }
 
-const SetSessionCookie = (req, res, sessionData, expiresAt = jwtExpiries.default) => {
-    res.cookie('session-token', SignJwt(sessionData, expiresAt), {
+const SetSessionCookie = (res, sessionData, expiresAt = jwtExpiries.default) => {
+    res.cookie('session-token', SignJwt({ ...sessionData, exp: expiresAt }), {
         httpOnly: true,
         sameSite: isProdEnv ? "none" : "lax",
         priority: "high",
         path: "/",
+        domain: "localhost",
         secure: isProdEnv,
         maxAge: expiresAt
     })
@@ -35,6 +36,7 @@ const SetSessionCookie = (req, res, sessionData, expiresAt = jwtExpiries.default
         httpOnly: false,
         sameSite: isProdEnv ? "none" : "lax",
         priority: "high",
+        domain: "localhost",
         path: "/",
         secure: isProdEnv,
         maxAge: expiresAt
@@ -61,11 +63,11 @@ const RemoveSessionCookie = (res) => {
 
 module.exports = {
     hashValue,
-    generateRandomInt,
     DeleteCookie,
-    getDateOfTimezone,
     isValidTimeZone,
-    EncryptOrDecryptData,
     SetSessionCookie,
-    RemoveSessionCookie
+    generateRandomInt,
+    getDateOfTimezone,
+    RemoveSessionCookie,
+    EncryptOrDecryptData
 }

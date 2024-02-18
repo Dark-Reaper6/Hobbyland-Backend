@@ -7,12 +7,14 @@ const { ConnectDB } = require('./helpers/database');
 
 const server = express();
 
+// Using middlewares
 server.use(cors());
-server.use(cookieParser())
+server.use(cookieParser());
+server.use(express.json())
 server.use(morgan('dev'));
-// server.use(express.static('public'));
 
 // api handlers
+server.post('/api/test', (req, res) => { })
 server.use('/api/auth', require('./api/routes/auth'));
 server.use('/api/users', require('./api/routes/user'));
 

@@ -37,15 +37,17 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         minLength: [8, "Password should be greater than 8 characters"],
-        set: hashValue,
         select: false,
+        set: hashValue,
         immutable: immutableCondition
     },
     firstname: {
-        type: String
+        type: String,
+        required: true
     },
     lastname: {
-        type: String
+        type: String,
+        required: true
     },
     gender: {
         type: String,

@@ -5,20 +5,7 @@ const { verify, decode } = require("jsonwebtoken");
 const { adminRoles } = require("../../hobbyland.config");
 
 module.exports = async function StandardApi(req, res, next, options = { verify_user: true, verify_admin: false, validationSchema: null }) {
-
-    const callNextHandler = async () => {
-        const { validationSchema } = options;
-        if (validationSchema) {
-            try {
-                const parsedData = validationSchema.parse(req.body);
-                req.body = parsedData;
-                return next;
-            } catch (error) {
-                res.status(400).json({ success: false, error: error.issues, msg: "Validation failed." });
-            }
-        } else return next;
-    }
-
+    let nextHandler = null;
     try {
         if (options.verify_user || options.verify_admin) try {
             // Authorizing the request.
@@ -26,19 +13,32 @@ module.exports = async function StandardApi(req, res, next, options = { verify_u
             if (!sessionToken) throw new Error("invalid session token");
             const decodedToken = verify(sessionToken, process.env.APP_SECRET_KEY);
             if (!isValidObjectId(decodedToken._id)) throw new Error("invalid session token");
-            // if (decode(decodedToken.user_agent) !== req.headers['user-agent']) throw new Error("invalid session token");
+            // if (decode(decodedToken.user_agent) !== req.headers['user-agent']) throw new Error("invalid session token"); // Currently disabled due to testing in different divices.S
             if (options.verify_admin) {
                 let admin = await User.findById(admin_id);
                 if (!admin || !adminRoles.includes(admin.role)) throw new Error("invalid session token");
             }
             req.user = decodedToken;
-
-            await (await callNextHandler())()
+            nextHandler = next;
         } catch (error) {
             console.log(error)
             return res.status(401).json({ success: false, error_code: process.env.APP_CODE + 401, error, msg: "Your session is invalid or expired. Please sign in again." })
-        }
-        else await (await callNextHandler())()
+        } else nextHandler = next;
+
+        const { validationSchema } = options;
+        if (validationSchema) {
+            nextHandler = null;
+            try {
+                const parsedData = validationSchema.parse(req.body);
+                req.body = parsedData;
+                nextHandler = next;
+            } catch (error) {
+                console.log(error)
+                res.status(400).json({ success: false, msg: error.issues[0].message });
+            }
+        } else nextHandler = next;
+
+        if (nextHandler) await nextHandler();
 
     } catch (error) {
         console.log(error);
