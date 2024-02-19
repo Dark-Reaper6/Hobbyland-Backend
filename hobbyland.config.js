@@ -5,7 +5,10 @@ const jwtExpiries = {
     extended: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) // 30 days
 }
 
+const registerProviders = ["hobbyland", "google"];
+
 module.exports = {
     adminRoles,
-    jwtExpiries
+    jwtExpiries,
+    registerProviders
 }

@@ -34,7 +34,7 @@ module.exports = async function StandardApi(req, res, next, options = { verify_u
                 nextHandler = next;
             } catch (error) {
                 console.log(error)
-                res.status(400).json({ success: false, msg: error.issues[0].message });
+                res.status(400).json({ success: false, msg: error.issues[0].message, field: error.issues[0].path[0] });
             }
         } else nextHandler = next;
 

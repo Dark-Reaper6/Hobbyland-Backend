@@ -23,7 +23,7 @@ const EncryptOrDecryptData = (data, encrypt = true) => {
 }
 
 const SetSessionCookie = (res, sessionData, expiresAt = jwtExpiries.default) => {
-    res.cookie('session-token', SignJwt({ ...sessionData, exp: expiresAt }), {
+    res.cookie(process.env.SESSION_COOKIE, SignJwt({ ...sessionData, exp: expiresAt }), {
         httpOnly: true,
         sameSite: isProdEnv ? "none" : "lax",
         priority: "high",
@@ -32,7 +32,7 @@ const SetSessionCookie = (res, sessionData, expiresAt = jwtExpiries.default) => 
         secure: isProdEnv,
         maxAge: expiresAt
     })
-    res.cookie('is_logged_in', true, {
+    res.cookie(process.env.LOGGEDIN_COOKIE, true, {
         httpOnly: false,
         sameSite: isProdEnv ? "none" : "lax",
         priority: "high",
@@ -44,14 +44,14 @@ const SetSessionCookie = (res, sessionData, expiresAt = jwtExpiries.default) => 
 }
 
 const RemoveSessionCookie = (res) => {
-    const sessionTokenCookie = serialize('session-token', "null", {
+    const sessionTokenCookie = serialize(process.env.SESSION_COOKIE, "null", {
         httpOnly: true,
         sameSite: isProdEnv ? "none" : "lax",
         path: "/",
         secure: isProdEnv,
         maxAge: 0
     })
-    const isLoggedInCookie = serialize('is_logged_in', false, {
+    const isLoggedInCookie = serialize(process.env.LOGGEDIN_COOKIE, false, {
         httpOnly: false,
         sameSite: isProdEnv ? "none" : "lax",
         path: "/",
@@ -62,6 +62,7 @@ const RemoveSessionCookie = (res) => {
 }
 
 module.exports = {
+    SignJwt,
     hashValue,
     DeleteCookie,
     isValidTimeZone,

@@ -1,20 +1,10 @@
 const User = require(`../models/user`);
 const OTP = require("../models/otp");
 const StandardApi = require("../middlewares/standard-api");
-const { generateRandomInt, isValidTimeZone, SignJwt, EncryptOrDecryptData } = require("../../helpers/cyphers");
-const { z } = require("zod");
+const { generateRandomInt, SignJwt, EncryptOrDecryptData } = require("../../helpers/cyphers");
+const { signupSchema, loginSchema } = require("../../validation-schemas/auth");
 // const UAParser = require("ua-parser-js");
 
-const signupSchema = z.object({
-    username: z.string().min(5, 'Username must be at least 5 characters long').max(24, 'Username cannot exceed 24 characters').regex(/^[A-Za-z0-9_]+$/, 'Username must contain only letters, numbers, and underscores'),
-    firstname: z.string().min(2, 'First Name must be at least 2 characters long').max(28, "maximum 28 characters allowed."),
-    lastname: z.string().min(2, 'Last Name must be atleast 2 characters long').max(28, "maximum 28 characters allowed."),
-    email: z.string().email('Invalid email format.').min(1, "Email is required"),
-    password: z.string().min(8, 'Password must be atleast 8 characters long').max(32, "Password can be at maximum 28 characters long."),
-    timezone: z.string().refine(isValidTimeZone, "Invalid timezone"),
-    account_type: z.string().refine((value) => ["student", "mentor"].includes(value), "Account type is invalid."),
-    accept_policies: z.boolean(),
-});
 const SignUp = async (req, res) => StandardApi(req, res, async () => {
     const { email, username } = req.body;
     let user = await User.findOne().or([{ email }, { username }]);
@@ -31,7 +21,7 @@ const SignUp = async (req, res) => StandardApi(req, res, async () => {
             new_user: req.body
         })
         const isProdEnv = process.env.DEVELOPMENT_ENV === "PRODUCTION";
-        res.cookie('_otp-id', dbOtp._id, {
+        res.cookie(process.env.OTPID_COOKIE, dbOtp._id, {
             httpOnly: true,
             sameSite: isProdEnv ? "none" : "lax",
             priority: "high",
@@ -49,16 +39,14 @@ const SignUp = async (req, res) => StandardApi(req, res, async () => {
     }
 }, { verify_user: false, validationSchema: signupSchema });
 
-
-
 const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
     const { otp } = req.body;
     if (typeof otp !== "number" || otp < 10001) return res.status(401).json({
         success: false,
         msg: "Invalid OTP"
     })
-    const { "_otp-id": otp_id } = res.cookies;
-    if (!otp_id) return res.status(400).json({ success: false, msg: "Oops! something went wrong, your session doesn't otp id, please retry." })
+    const otp_id = res.cookies?.[process.env.OTPID_COOKIE];
+    if (!otp_id) return res.status(400).json({ success: false, msg: "Oops! something went wrong, your session doesn't match otp id, please retry." })
 
     const otpData = await OTP.findById(otp_id).lean();
     if (!otpData) return res.status(401).json({ success: false, msg: "The OTP has expired, please try again." })
@@ -91,7 +79,7 @@ const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
             ...(user.agency && { agency: user.agency }),
             ...(user.account_type && { account_type: user.account_type })
         });
-        res.clearCookie("_otp-id");
+        res.clearCookie(process.env.OTPID_COOKIE);
 
         res.status(200).json({
             success: true,
@@ -101,4 +89,47 @@ const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
     }
 }, { verify_user: false })
 
-module.exports = { SignUp, SignupCallback };
+const Login = async (req, res) => StandardApi(req, res, async () => {
+    const { email, username, password, remember_me } = req.body;
+
+    const currentUserAgent = req.headers['user-agent'];
+    // const parser = new UAParser(currentUserAgent);
+    let user = await User.findOneAndUpdate({ $or: [{ email }, { username }] }, { user_agent: SignJwt(currentUserAgent) }, { new: true, lean: true }).select("+password")
+    if (!user) return res.status(404).json({ success: false, msg: "User not found, please create an account" })
+    if (user.register_provider !== req.body.register_provider) return res.status(409).json({ success: false, msg: `This account is associated with ${user.register_provider}` })
+    const originalPassword = EncryptOrDecryptData(user.password, false)
+    if (password !== originalPassword) return res.status(401).json({ success: false, msg: "Your password is incorrect" })
+    if (user.two_fa.register_date && user.two_fa.enabled) {
+        return res.json({
+            success: true,
+            msg: "Step 1 completed, please verify TOTP",
+            verify_totp: true,
+        })
+    }
+    else if (!user.two_fa.enabled) {
+        SetSessionCookie(req, res, {
+            _id: user._id,
+            username: user.username,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            timezone: user.timezone,
+            createdAt: user.createdAt,
+            user_agent: SignJwt(user.user_agent),
+            last_checkin: user.last_checkin,
+            ...(user.role && { role: user.role }),
+            ...(user.level && { level: user.level }),
+            ...(user.agency && { agency: user.agency }),
+            ...(user.account_type && { account_type: user.account_type })
+        }, (remember_me && remember_me === true) ? jwtExpiries.extended : jwtExpiries.default);
+        delete user.password;
+
+        res.status(200).json({
+            success: true,
+            msg: "You are Logged in successfully !",
+            payload: SignJwt(user)
+        })
+    }
+}, { verify_user: false, validationSchema: loginSchema })
+
+module.exports = { SignUp, SignupCallback, Login };

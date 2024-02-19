@@ -16,7 +16,7 @@ server.use(morgan('dev'));
 // api handlers
 server.post('/api/test', (req, res) => { })
 server.use('/api/auth', require('./api/routes/auth'));
-server.use('/api/users', require('./api/routes/user'));
+server.use('/api/user', require('./api/routes/user'));
 
 // initializing server
 server.listen(process.env.PORT, async () => {
