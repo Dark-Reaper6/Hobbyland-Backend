@@ -22,15 +22,16 @@ const EncryptOrDecryptData = (data, encrypt = true) => {
     else return CryptoJS.AES.decrypt(data, process.env.APP_SECRET_KEY).toString(CryptoJS.enc.Utf8)
 }
 
-const SetSessionCookie = (res, sessionData, expiresAt = jwtExpiries.default) => {
-    res.cookie(process.env.SESSION_COOKIE, SignJwt({ ...sessionData, exp: expiresAt }), {
+const SetSessionCookie = (res, sessionData, expiresAfter = jwtExpiries.default) => {
+    const maxAge = Math.floor(expiresAfter * 24 * 60 * 60);
+    res.cookie(process.env.SESSION_COOKIE, SignJwt(sessionData, `${expiresAfter} days`), {
         httpOnly: true,
         sameSite: isProdEnv ? "none" : "lax",
         priority: "high",
         path: "/",
         domain: "localhost",
         secure: isProdEnv,
-        maxAge: expiresAt
+        maxAge
     })
     res.cookie(process.env.LOGGEDIN_COOKIE, true, {
         httpOnly: false,
@@ -39,7 +40,7 @@ const SetSessionCookie = (res, sessionData, expiresAt = jwtExpiries.default) => 
         domain: "localhost",
         path: "/",
         secure: isProdEnv,
-        maxAge: expiresAt
+        maxAge
     })
 }
 

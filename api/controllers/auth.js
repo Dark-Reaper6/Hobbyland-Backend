@@ -1,8 +1,9 @@
 const User = require(`../models/user`);
 const OTP = require("../models/otp");
+const { OAuth2Client } = require('google-auth-library');
 const StandardApi = require("../middlewares/standard-api");
 const { generateRandomInt, SignJwt, EncryptOrDecryptData } = require("../../helpers/cyphers");
-const { signupSchema, loginSchema } = require("../../validation-schemas/auth");
+const { signupSchema, googleSignupSchema, loginSchema } = require("../../validation-schemas/auth");
 // const UAParser = require("ua-parser-js");
 
 const SignUp = async (req, res) => StandardApi(req, res, async () => {
@@ -39,6 +40,61 @@ const SignUp = async (req, res) => StandardApi(req, res, async () => {
     }
 }, { verify_user: false, validationSchema: signupSchema });
 
+const SignUpWithGoogle = async (req, res) => StandardApi(req, res, async () => {
+    const { token, timezone, account_type } = req.body;
+
+    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    let ticket;
+    try {
+        ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+    } catch (e) { return res.status(401).json({ success: false, msg: "Invalid token, user unauthorized. Please try registring again with valid google account." }) }
+    const { name, email, picture } = ticket.getPayload();
+
+    let username = email.split('@')[0]
+    let splittedName = name.split(' ')
+    let firstname = splittedName[0]
+    splittedName.shift()
+    let lastname = splittedName.join(' ')
+
+    let user = await User.findOne().or([{ email }, { username }]);
+    if (user) return res.status(409).json({ success: false, msg: "This Email or Username already in use." });
+
+    const currentUserAgent = req.headers['user-agent']
+    // const parser = new UAParser(currentUserAgent)
+    user = (await User.create({
+        email,
+        username,
+        firstname,
+        lastname,
+        image: picture,
+        account_type,
+        timezone,
+        user_agent: SignJwt(currentUserAgent),
+        register_provider: "google",
+        createdAt: getDateOfTimezone(timezone)
+    })).toObject();
+
+    SetSessionCookie(res, {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        register_provider: user.register_provider,
+        timezone: user.timezone,
+        user_agent: user.user_agent,
+        last_checkin: user.last_checkin,
+        createdAt: user.createdAt
+    });
+
+    res.status(200).json({
+        success: true,
+        msg: "You are Resgistered successfully !",
+        payload: SignJwt(user)
+    })
+}, { verify_user: false, validationSchema: googleSignupSchema })
+
 const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
     const { otp } = req.body;
     if (typeof otp !== "number" || otp < 10001) return res.status(401).json({
@@ -64,7 +120,7 @@ const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
             createdAt: getDateOfTimezone(credentials.timezone)
         })).toObject();
 
-        SetSessionCookie(req, res, {
+        SetSessionCookie(res, {
             _id: user._id,
             username: user.username,
             firstname: user.firstname,
@@ -100,6 +156,13 @@ const Login = async (req, res) => StandardApi(req, res, async () => {
     const originalPassword = EncryptOrDecryptData(user.password, false)
     if (password !== originalPassword) return res.status(401).json({ success: false, msg: "Your password is incorrect" })
     if (user.two_fa.register_date && user.two_fa.enabled) {
+        res.cookie("otp_user_id", user._id, {
+            httpOnly: true,
+            sameSite: process.env.DEVELOPMENT_ENV === "PRODUCTION" ? "none" : "lax",
+            path: "/",
+            domain: "localhost",
+            secure: process.env.DEVELOPMENT_ENV === "PRODUCTION",
+        })
         return res.json({
             success: true,
             msg: "Step 1 completed, please verify TOTP",
@@ -107,7 +170,7 @@ const Login = async (req, res) => StandardApi(req, res, async () => {
         })
     }
     else if (!user.two_fa.enabled) {
-        SetSessionCookie(req, res, {
+        SetSessionCookie(res, {
             _id: user._id,
             username: user.username,
             firstname: user.firstname,
@@ -132,4 +195,61 @@ const Login = async (req, res) => StandardApi(req, res, async () => {
     }
 }, { verify_user: false, validationSchema: loginSchema })
 
-module.exports = { SignUp, SignupCallback, Login };
+
+const LoginWithGoogle = async (req, res) => StandardApi(req, res, async () => {
+    const { token } = req.body;
+    if (!token || token.length < 800) return res.status(400).json({ success: false, msg: "A valid google token as `token` is required." })
+
+    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    let ticket;
+    try {
+        ticket = await googleClient.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
+    } catch (e) { return res.status(401).json({ success: false, msg: "Invalid token, user unauthorized. Please try logging in again with valid google account." }) }
+    const { email } = ticket.getPayload();
+
+    await ConnectDB();
+    const currentUserAgent = req.headers['user-agent']
+    // const parser = new UAParser(currentUserAgent)
+    let user = await User.findOneAndUpdate({ email }, { user_agent: SignJwt(currentUserAgent) }, { new: true, lean: true });
+    if (!user) return res.status(404).json({ success: false, msg: "User not found, please signup for a new account." });
+    else if (user.two_fa.register_date && user.two_fa.enabled) {
+        res.cookie("otp_user_id", user._id, {
+            httpOnly: true,
+            sameSite: process.env.DEVELOPMENT_ENV === "PRODUCTION" ? "none" : "lax",
+            path: "/",
+            domain: "localhost",
+            secure: process.env.DEVELOPMENT_ENV === "PRODUCTION",
+        })
+        return res.json({
+            success: true,
+            msg: "Step 1 completed, please verify TOTP",
+            verify_totp: true,
+        })
+    }
+    SetSessionCookie(res, {
+        _id: user._id,
+        username: user.username,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        timezone: user.timezone,
+        createdAt: user.createdAt,
+        user_agent: SignJwt(user.user_agent),
+        last_checkin: user.last_checkin,
+        ...(user.role && { role: user.role }),
+        ...(user.level && { level: user.level }),
+        ...(user.agency && { agency: user.agency }),
+        ...(user.account_type && { account_type: user.account_type })
+    }, jwtExpiries.default);
+
+    res.status(200).json({
+        success: true,
+        msg: "You are Resgistered successfully !",
+        payload: SignJwt(user)
+    })
+}, { verify_user: false })
+
+module.exports = { SignUp, SignUpWithGoogle, SignupCallback, Login, LoginWithGoogle };
