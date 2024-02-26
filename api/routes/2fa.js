@@ -3,8 +3,8 @@ const { GetQrCode, Register2fa, VerifyTotp, Update2fa } = require(`../controller
 const router = express.Router();
 
 router.get("/get-qrcode", GetQrCode);
-router.post("/register-2fa", Register2fa);
-router.put("/toggle-2fa", Update2fa);
+router.post("/register", Register2fa);
+router.put("/toggle", Update2fa);
 router.post("/verify-totp", VerifyTotp);
 
 module.exports = router;

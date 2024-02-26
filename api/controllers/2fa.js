@@ -19,7 +19,7 @@ const VerifyTotp = async (req, res) => StandardApi(req, res, async () => {
     const verified = speakeasy.totp.verify({
         secret: user.two_fa.secret,
         encoding: 'base32',
-        token: totp_code,
+        token: totp_code
     });
 
     if (verified) {

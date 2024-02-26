@@ -25,5 +25,10 @@ const googleSignupSchema = z.object({
     timezone: z.string({ required_error: "User Timezone is required" }).refine(isValidTimeZone, "Invalid timezone"),
     account_type: z.boolean().optional()
 }).refine(({ username, email }) => (username && !email) || (email && !username), "Username or Email is required.")
+const forgotPasswordSchema = z.object({
+    username: z.string().min(5, 'Username must be at least 5 characters long').max(24, 'Username cannot exceed 24 characters').regex(/^[A-Za-z0-9_]+$/, 'Username must contain only letters, numbers, and underscores').optional(),
+    email: z.string().email('Invalid email format.').optional(),
+    password: z.string({ required_error: "Password is required" }).min(8, 'Password must be atleast 8 characters long').max(32, "Password can be at maximum 28 characters long."),
+}).refine(({ username, email }) => (username && !email) || (email && !username), "Username or Email is required.")
 
-module.exports = { signupSchema, loginSchema, googleSignupSchema }
+module.exports = { signupSchema, loginSchema, googleSignupSchema, forgotPasswordSchema }

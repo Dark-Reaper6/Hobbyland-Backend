@@ -2,8 +2,8 @@ const User = require(`../models/user`);
 const OTP = require("../models/otp");
 const { OAuth2Client } = require('google-auth-library');
 const StandardApi = require("../middlewares/standard-api");
-const { generateRandomInt, SignJwt, EncryptOrDecryptData } = require("../../helpers/cyphers");
-const { signupSchema, googleSignupSchema, loginSchema } = require("../../validation-schemas/auth");
+const { generateRandomInt, SignJwt, EncryptOrDecryptData, hashValue } = require("../../helpers/cyphers");
+const { signupSchema, googleSignupSchema, loginSchema, forgotPasswordSchema } = require("../../validation-schemas/auth");
 // const UAParser = require("ua-parser-js");
 
 const SignUp = async (req, res) => StandardApi(req, res, async () => {
@@ -252,4 +252,68 @@ const LoginWithGoogle = async (req, res) => StandardApi(req, res, async () => {
     })
 }, { verify_user: false })
 
-module.exports = { SignUp, SignUpWithGoogle, SignupCallback, Login, LoginWithGoogle };
+
+const ForgotPassword = async (req, res) => StandardApi(req, res, async () => {
+    const { email, username, new_password } = req.body;
+
+    let user = await User.findOne().or([{ email }, { username }])
+    if (!user) return res.status(404).json({ success: false, msg: "You don't have an account with this Email or Username" })
+    if (user.register_provider != "hobbyland") return res.status(404).json({ success: false, msg: "This email is linked with Google account." })
+    if (user.password === hashValue(new_password)) return res.status(400).json({ success: false, msg: "New password can't be the old password, please choose a strong password." })
+
+    let dbOtp = await OTP.findOne({ user_id: user._id });
+    if (dbOtp) return res.status(401).json({ success: false, msg: "You already have 'reset password' session, try after 5 minutes." })
+
+    let otp = generateRandomInt(10001, 999999);
+    dbOtp = await OTP.create({
+        user_id: user._id,
+        email: user.email,
+        new_password,
+        otp
+    })
+    res.cookie(process.env.OTPID_COOKIE, dbOtp._id, {
+        httpOnly: true,
+        sameSite: isProdEnv ? "none" : "lax",
+        priority: "high",
+        path: "/",
+        secure: isProdEnv
+    })
+    // let template = resetPassTemplate(user.firstname, otp)
+    // await sendEmail({ to: user.email, subject: "Reset Password" }, template)
+    res.json({
+        success: true,
+        msg: `We just sent you an OTP at ${user.email}, please check your Mail Box`,
+        otp_id: dbOtp._id
+    })
+}, { verify_user: false, validationSchema: forgotPasswordSchema })
+
+const ChangePassword = async (req, res) => StandardApi(req, res, async () => {
+    const otp_id = res.cookies?.[process.env.OTPID_COOKIE];
+    if (!otp_id) return res.status(400).json({ success: false, msg: "Oops! your session doesn't match the otp identifier. Please try again." })
+    const { otp } = req.body;
+    if (!otp) return res.status(400).json({ success: false, msg: "All valid parameters required. Body Parameters: otp" })
+
+    const dbOtp = await OTP.findById(otp_id)
+    if (!dbOtp) return res.status(401).json({ success: false, msg: "OTP has expired." })
+    if (otp !== dbOtp.otp) return res.status(401).json({ success: false, msg: "Incorrect OTP" })
+    const newPassword = hashValue(dbOtp.new_password);
+    await User.findByIdAndUpdate(dbOtp.user_id, {
+        password: newPassword
+    }, { immutability: "disable" })
+
+    res.clearCookie(process.env.OTPID_COOKIE);
+    res.status(200).json({
+        success: true,
+        msg: "Your password has been updated!"
+    })
+}, { verify_user: false })
+
+module.exports = {
+    SignUp,
+    SignUpWithGoogle,
+    SignupCallback,
+    Login,
+    LoginWithGoogle,
+    ForgotPassword,
+    ChangePassword
+};
