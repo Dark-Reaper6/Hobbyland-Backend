@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { immutableCondition } = require('../../helpers/database');
 
-const GigSchema = new mongoose.Schema({
+const ServiceSchema = new mongoose.Schema({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -78,4 +78,4 @@ const GigSchema = new mongoose.Schema({
     ]
 });
 
-module.exports = mongoose.model('Gig', GigSchema);
+module.exports = mongoose.model('Service', ServiceSchema);

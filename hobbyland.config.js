@@ -7,8 +7,11 @@ const jwtExpiries = {
 
 const registerProviders = ["hobbyland", "google"];
 
+const userDocsTypes = ['id_card', 'passport', "driver_license", 'other'];
+
 module.exports = {
     adminRoles,
     jwtExpiries,
+    userDocsTypes,
     registerProviders
 }

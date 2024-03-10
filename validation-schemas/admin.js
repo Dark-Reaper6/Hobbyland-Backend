@@ -1,21 +1,11 @@
 const { z } = require("zod");
 const { userDocsTypes } = require("../hobbyland.config")
 
-const userUpdateSchema = z.object({
-    firstname: z.string({ required_error: "Firsname is required" }).min(2, 'First Name must be at least 2 characters long').max(28, "maximum 28 characters allowed."),
-    lastname: z.string({ required_error: "Lastname is required" }).min(2, 'Last Name must be atleast 2 characters long').max(28, "maximum 28 characters allowed."),
-    phone_number: z.object({
-        prefix: z.string(),
-        suffix: z.string()
-    }),
-    profile_image: z.string(),
-    banner_image: z.string(),
-    gender: z.string(),
-    social_links: z.array(z.object({
-        name: z.string(),
-        link: z.string()
-    }))
-});
+const adminLoginSchema = z.object({
+    username: z.string().min(5, 'Username must be at least 5 characters long').max(24, 'Username cannot exceed 24 characters').regex(/^[A-Za-z0-9_]+$/, 'Username must contain only letters, numbers, and underscores').optional(),
+    email: z.string().email('Invalid email format.').optional(),
+    password: z.string({ required_error: "Password is required" }).min(8, 'Password must be atleast 8 characters long').max(32, "Password can be at maximum 28 characters long."),
+}).refine(({ username, email }) => (username && !email) || (email && !username), "Username or Email is required.")
 
 const verificationDocsSchema = z.object({
     documents: z.array(z.object({
@@ -34,6 +24,5 @@ const verificationDocsSchema = z.object({
 })
 
 module.exports = {
-    userUpdateSchema,
-    verificationDocsSchema
+    adminLoginSchema,
 }

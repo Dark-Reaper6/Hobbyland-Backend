@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
+const { userDocsTypes } = require("../../hobbyland.config");
+const { immutableCondition } = require('../../helpers/database');
 
 const VerificationDocumentSchema = new mongoose.Schema({
-    user: {
+    user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
@@ -9,34 +11,45 @@ const VerificationDocumentSchema = new mongoose.Schema({
     },
     documents: [
         {
-            documentType: {
+            document_type: {
                 type: String,
-                enum: ['ID Card', 'Passport', "Driver's License", 'Other'],
-                required: true,
+                enum: userDocsTypes,
+                required: true
             },
-            documentNumber: {
+            document_number: {
                 type: String,
-                required: true,
+                required: true
             },
-            issuedBy: {
+            document_name: {
                 type: String,
-                required: true,
+                required: true
             },
-            issueDate: {
+            issued_by: {
+                type: String,
+                required: true
+            },
+            issue_date: {
                 type: Date,
-                required: true,
+                required: true
             },
-            expirationDate: {
-                type: Date,
-            }
+            front_image: {
+                type: String,
+                required: true
+            },
+            back_image: {
+                type: String,
+                required: true
+            },
+            additional_details: String,
+            expiration_date: Date
         }
     ],
-    isVerified: {
+    is_verified: {
         type: Boolean,
         default: false,
         immutable: immutableCondition
     },
-    verificationDate: {
+    verification_date: {
         type: Date,
         immutable: immutableCondition
     }

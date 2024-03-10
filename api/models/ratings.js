@@ -10,9 +10,14 @@ const RatingsScehma = new mongoose.Schema({
         {
             user_id: {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "User"
+                ref: "User",
+                required: true
             },
-            rating: {type: Number, required: true},
+            rating: {
+                type: Number,
+                enum: [1, 2, 3, 4, 5],
+                required: true
+            },
             review: String
         }
     ]

@@ -1,10 +1,12 @@
 const User = require(`../models/user`);
+const Notifications = require("../models/notifications");
 const StandardApi = require("../middlewares/standard-api");
 const { SignJwt } = require("../../helpers/cyphers");
 const { userUpdateSchema } = require("../../validation-schemas/user");
 
-const getMe = async (req, res) => StandardApi(req, res, async () => {
-    const user = await User.findById(req.user._id).lean();
+const GetMe = async (req, res) => StandardApi(req, res, async () => {
+    const user_id = req.user._id;
+    const user = await User.findById(user_id).populate("agency.agency_id").lean();
     res.status(200).json({ success: true, payload: SignJwt(user) })
 })
 
@@ -28,7 +30,13 @@ const UpdateUser = async (req, res) => StandardApi(req, res, async () => {
     res.status(200).json({ success: true, payload: SignJwt(user) })
 }, { validationSchema: userUpdateSchema })
 
+const GetUserNotifications = async (req, res) => StandardApi(req, res, async () => {
+    const notificData = await Notifications.find({ user_id: req.user._id }).lean();
+    res.status(200).json({ success: true, notifications_data: notificData })
+})
+
 module.exports = {
-    getMe,
+    GetMe,
+    GetUserNotifications,
     UpdateUser
 }

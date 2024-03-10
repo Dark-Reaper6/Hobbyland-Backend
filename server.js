@@ -18,6 +18,7 @@ server.post('/api/test', (req, res) => { })
 server.use('/api/auth', require('./api/routes/auth'));
 server.use('/api/2fa', require('./api/routes/2fa'));
 server.use('/api/user', require('./api/routes/user'));
+server.use('/api/admin', require('./api/routes/admin'));
 
 // initializing server
 server.listen(process.env.PORT, async () => {

@@ -67,8 +67,16 @@ const UserSchema = new mongoose.Schema({
         role: String
     },
     level: {
-        type: Number,
-        immutable: immutableCondition
+        level: {
+            type: Number,
+            default: 0,
+            immutable: immutableCondition
+        },
+        exp: {
+            type: Number,
+            default: 100,
+            immutable: immutableCondition
+        }
     },
     two_fa: {
         secret: {
@@ -101,6 +109,11 @@ const UserSchema = new mongoose.Schema({
     is_active: {
         type: Boolean,
         default: true
+    },
+    is_verified: {
+        type: Boolean,
+        default: false,
+        immutable: immutableCondition
     },
     last_checkin: {
         type: Date,
