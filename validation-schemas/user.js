@@ -33,7 +33,32 @@ const verificationDocsSchema = z.object({
     verification_date: z.string()
 })
 
+const serviceSchema = z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    portfolio: z.array(z.object({
+        media_url: z.string().url(),
+        description: z.string().optional()
+    })),
+    category: z.string(),
+    tags: z.array(z.string()).optional,
+    pricing: z.array(z.object({
+        plan: z.string(),
+        title: z.string(),
+        description: z.string().optional(),
+        price: z.number(),
+        delivery_time: z.string(),
+        features: z.array(z.string()),
+    })),
+    delivery_methods: z.array(z.string()),
+    FAQ: z.array(z.object({
+        question: z.string(),
+        answer: z.string()
+    })).optional(),
+})
+
 module.exports = {
+    serviceSchema,
     userUpdateSchema,
     verificationDocsSchema
 }

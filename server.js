@@ -8,7 +8,7 @@ const { ConnectDB } = require('./helpers/database');
 const server = express();
 
 // Using middlewares
-server.use(cors());
+server.use(cors({ credentials: true, origin: ["http://localhost:3001", "http://localhost:3000"] }));
 server.use(cookieParser());
 server.use(express.json())
 server.use(morgan('dev'));

@@ -2,7 +2,7 @@ const User = require(`../models/user`);
 const OTP = require("../models/otp");
 const { OAuth2Client } = require('google-auth-library');
 const StandardApi = require("../middlewares/standard-api");
-const { generateRandomInt, SignJwt, EncryptOrDecryptData, hashValue } = require("../../helpers/cyphers");
+const { generateRandomInt, SignJwt, EncryptOrDecryptData, hashValue, getDateOfTimezone, SetSessionCookie } = require("../../helpers/cyphers");
 const { signupSchema, googleSignupSchema, loginSchema, forgotPasswordSchema } = require("../../validation-schemas/auth");
 // const UAParser = require("ua-parser-js");
 
@@ -101,12 +101,12 @@ const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
         success: false,
         msg: "Invalid OTP"
     })
-    const otp_id = res.cookies?.[process.env.OTPID_COOKIE];
+    const otp_id = req.cookies?.[process.env.OTPID_COOKIE];
     if (!otp_id) return res.status(400).json({ success: false, msg: "Oops! something went wrong, your session doesn't match otp id, please retry." })
 
     const otpData = await OTP.findById(otp_id).lean();
     if (!otpData) return res.status(401).json({ success: false, msg: "The OTP has expired, please try again." })
-    if (otpData.otp !== otp) return res.status(401).json({ success: false, msg: "The OTP is incorrect." })
+    if (otpData.otp != otp) return res.status(401).json({ success: false, msg: "The OTP is incorrect." })
 
     let credentials = otpData.new_user;
     if (otpData) {

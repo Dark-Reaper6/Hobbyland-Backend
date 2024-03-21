@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { hashValue } = require('../../helpers/cyphers');
 const { immutableCondition } = require('../../helpers/database');
+const { userLevels } = require("../../hobbyland.config")
 
 const UserSchema = new mongoose.Schema({
     username: {
@@ -64,7 +65,9 @@ const UserSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: "Agency"
         },
-        role: String
+        role: {
+            type: String
+        }
     },
     level: {
         level: {
@@ -74,7 +77,7 @@ const UserSchema = new mongoose.Schema({
         },
         exp: {
             type: Number,
-            default: 100,
+            default: userLevels["0"],
             immutable: immutableCondition
         }
     },
@@ -120,5 +123,17 @@ const UserSchema = new mongoose.Schema({
         default: new Date()
     }
 }, { timestamps: true });
+
+UserSchema.pre('save', async function (next) {
+    console.log("Here is the user doc in pre save event: ", this)
+    if (this.isModified('level.exp')) {
+        const { level } = this;
+
+        const previousExp = level.exp - this.getUpdate().$inc['level.exp'];
+        const nextLevelExp = userLevels[level.level + 1];
+        if (previousExp < nextLevelExp && level.exp >= nextLevelExp) level.level += 1;
+    }
+    next();
+});
 
 module.exports = mongoose.model("User", UserSchema);
