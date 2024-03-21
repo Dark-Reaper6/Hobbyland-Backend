@@ -4,7 +4,7 @@ const VerificDocs = require(`../models/verfication-documents`);
 const StandardApi = require("../middlewares/standard-api");
 const { adminRoles } = require("../../hobbyland.config");
 const { adminLoginSchema } = require("../../validation-schemas/admin");
-const { SignJwt, getDateOfTimezone } = require("../../helpers/cyphers");
+const { SignJwt, getDateOfTimezone, EncryptOrDecryptData, SetSessionCookie } = require("../../helpers/cyphers");
 
 const AdminLogin = async (req, res) => StandardApi(req, res, async () => {
     const { email, username, password } = req.body;
@@ -71,11 +71,10 @@ const ApproveDocuments = async (req, res) => StandardApi(req, res, async () => {
         success: true,
         msg: "Documents approved successfully, they're mentor now."
     })
-
 }, { verify_admin: true })
 
 module.exports = {
-    AdminLogin,
     GetAdmin,
+    AdminLogin,
     ApproveDocuments,
 }

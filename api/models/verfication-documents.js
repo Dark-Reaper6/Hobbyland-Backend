@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { userDocsTypes } = require("../../hobbyland.config");
+const { userDocsTypes, docsVerificStatuses } = require("../../hobbyland.config");
 const { immutableCondition } = require('../../helpers/database');
 
 const VerificationDocumentSchema = new mongoose.Schema({
@@ -44,10 +44,15 @@ const VerificationDocumentSchema = new mongoose.Schema({
             expiration_date: Date
         }
     ],
-    is_verified: {
-        type: Boolean,
-        default: false,
+    verification_status: {
+        type: String,
+        enum: docsVerificStatuses,
+        default: docsVerificStatuses[0],
         immutable: immutableCondition
+    },
+    rejection: {
+        rejected: Boolean,
+        reason: String
     },
     verification_date: {
         type: Date,

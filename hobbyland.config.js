@@ -1,3 +1,5 @@
+const allowedOrigins = ["http://localhost:3001", "http://localhost:3000"];
+
 const adminRoles = ["administrator", "maintainer", "support"]
 
 const jwtExpiries = {
@@ -26,11 +28,15 @@ const registerProviders = ["hobbyland", "google"];
 
 const userDocsTypes = ['id_card', 'passport', "driver_license", 'other'];
 
+const docsVerificStatuses = ["pending", "verified", "unverified"];
+
 module.exports = {
     rewards,
     adminRoles,
     userLevels,
     jwtExpiries,
     userDocsTypes,
-    registerProviders
+    allowedOrigins,
+    registerProviders,
+    docsVerificStatuses
 }

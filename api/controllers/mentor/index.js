@@ -10,9 +10,9 @@ const SubmitDocs = async (req, res) => StandardApi(req, res, async () => {
 
     res.status(201).json({
         success: true,
-        msg: "Documents sumitted for review, please wait for approval."
+        documents: verificDocs,
+        msg: "Documents submitted for review, please wait for approval."
     })
-
 }, { validationSchema: verificationDocsSchema })
 
 module.exports = {

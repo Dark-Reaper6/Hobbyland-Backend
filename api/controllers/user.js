@@ -37,6 +37,6 @@ const GetUserNotifications = async (req, res) => StandardApi(req, res, async () 
 
 module.exports = {
     GetMe,
-    GetUserNotifications,
-    UpdateUser
+    UpdateUser,
+    GetUserNotifications
 }
