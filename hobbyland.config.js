@@ -3,6 +3,7 @@ const allowedOrigins = ["http://localhost:3001", "http://localhost:3000"];
 const adminRoles = ["administrator", "maintainer", "support"]
 
 const jwtExpiries = {
+    socket: "5m",
     default: 7, // 7 days
     extended: 30 // 30 days
 }

@@ -16,6 +16,7 @@ server.use(morgan('dev'));
 
 // api handlers
 server.use('/api/auth', require('./api/routes/auth'));
+server.use('/api/socket', require('./api/routes/socket'));
 server.use('/api/2fa', require('./api/routes/2fa'));
 server.use('/api/user', require('./api/routes/user'));
 server.use('/api/agency', require('./api/routes/agency'));
