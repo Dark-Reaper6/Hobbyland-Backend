@@ -5,6 +5,7 @@ const StandardApi = require("../middlewares/standard-api");
 const { generateRandomInt, SignJwt, hashValue, getDateOfTimezone, SetSessionCookie } = require("../../helpers/cyphers");
 const { signupSchema, googleSignupSchema, loginSchema, forgotPasswordSchema } = require("../../validation-schemas/auth");
 const { jwtExpiries } = require("../../hobbyland.config")
+const isProdEnv = process.env.DEVELOPMENT_ENV === "PRODUCTION";
 // const UAParser = require("ua-parser-js");
 
 const SignUp = async (req, res) => StandardApi(req, res, async () => {
@@ -22,7 +23,6 @@ const SignUp = async (req, res) => StandardApi(req, res, async () => {
             otp,
             new_user: req.body
         })
-        const isProdEnv = process.env.DEVELOPMENT_ENV === "PRODUCTION";
         res.cookie(process.env.OTPID_COOKIE, dbOtp._id, {
             httpOnly: true,
             sameSite: isProdEnv ? "none" : "lax",
