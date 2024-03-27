@@ -2,8 +2,9 @@ const User = require(`../models/user`);
 const OTP = require("../models/otp");
 const { OAuth2Client } = require('google-auth-library');
 const StandardApi = require("../middlewares/standard-api");
-const { generateRandomInt, SignJwt, EncryptOrDecryptData, hashValue, getDateOfTimezone, SetSessionCookie } = require("../../helpers/cyphers");
+const { generateRandomInt, SignJwt, hashValue, getDateOfTimezone, SetSessionCookie } = require("../../helpers/cyphers");
 const { signupSchema, googleSignupSchema, loginSchema, forgotPasswordSchema } = require("../../validation-schemas/auth");
+const { jwtExpiries } = require("../../hobbyland.config")
 // const UAParser = require("ua-parser-js");
 
 const SignUp = async (req, res) => StandardApi(req, res, async () => {
@@ -153,8 +154,9 @@ const Login = async (req, res) => StandardApi(req, res, async () => {
     let user = await User.findOneAndUpdate({ $or: [{ email }, { username }] }, { user_agent: SignJwt(currentUserAgent) }, { new: true, lean: true }).select("+password")
     if (!user) return res.status(404).json({ success: false, msg: "User not found, please create an account" })
     if (user.register_provider !== req.body.register_provider) return res.status(409).json({ success: false, msg: `This account is associated with ${user.register_provider}` })
-    const originalPassword = EncryptOrDecryptData(user.password, false)
-    if (password !== originalPassword) return res.status(401).json({ success: false, msg: "Your password is incorrect" })
+    const submittedPassword = hashValue(password)
+    console.log("the pass: ", password, submittedPassword)
+    if (user.password !== submittedPassword) return res.status(401).json({ success: false, msg: "Your password is incorrect" })
     if (user.two_fa.register_date && user.two_fa.enabled) {
         res.cookie("otp_user_id", user._id, {
             httpOnly: true,
