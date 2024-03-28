@@ -25,6 +25,7 @@ const SignUp = async (req, res) => StandardApi(req, res, async () => {
         })
         res.cookie(process.env.OTPID_COOKIE, dbOtp._id, {
             httpOnly: true,
+            partitioned: true,
             sameSite: isProdEnv ? "none" : "lax",
             priority: "high",
             path: "/",
@@ -155,15 +156,15 @@ const Login = async (req, res) => StandardApi(req, res, async () => {
     if (!user) return res.status(404).json({ success: false, msg: "User not found, please create an account" })
     if (user.register_provider !== req.body.register_provider) return res.status(409).json({ success: false, msg: `This account is associated with ${user.register_provider}` })
     const submittedPassword = hashValue(password)
-    console.log("the pass: ", password, submittedPassword)
-    if (user.password !== submittedPassword) return res.status(401).json({ success: false, msg: "Your password is incorrect" })
+    if (user.password !== submittedPassword.toString()) return res.status(401).json({ success: false, msg: "Your password is incorrect" })
     if (user.two_fa.register_date && user.two_fa.enabled) {
         res.cookie("otp_user_id", user._id, {
             httpOnly: true,
-            sameSite: process.env.DEVELOPMENT_ENV === "PRODUCTION" ? "none" : "lax",
+            partitioned: true,
+            sameSite: isProdEnv ? "none" : "lax",
             path: "/",
             domain: "localhost",
-            secure: process.env.DEVELOPMENT_ENV === "PRODUCTION",
+            secure: isProdEnv,
         })
         return res.json({
             success: true,
@@ -220,6 +221,7 @@ const LoginWithGoogle = async (req, res) => StandardApi(req, res, async () => {
     else if (user.two_fa.register_date && user.two_fa.enabled) {
         res.cookie("otp_user_id", user._id, {
             httpOnly: true,
+            partitioned: true,
             sameSite: isProdEnv ? "none" : "lax",
             path: "/",
             domain: "localhost",
@@ -299,9 +301,8 @@ const ChangePassword = async (req, res) => StandardApi(req, res, async () => {
     const dbOtp = await OTP.findById(otp_id)
     if (!dbOtp) return res.status(401).json({ success: false, msg: "OTP has expired." })
     if (otp.toString() !== dbOtp.otp) return res.status(401).json({ success: false, msg: "Incorrect OTP" })
-    const newPassword = hashValue(dbOtp.new_password);
     await User.findByIdAndUpdate(dbOtp.user_id, {
-        password: newPassword
+        password: dbOtp.new_password
     }, { immutability: "disable" })
 
     res.clearCookie(process.env.OTPID_COOKIE);

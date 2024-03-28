@@ -5,8 +5,7 @@ const { SignJwt } = require("../../helpers/cyphers");
 const { userUpdateSchema } = require("../../validation-schemas/user");
 
 const GetMe = async (req, res) => StandardApi(req, res, async () => {
-    const user_id = req.user._id;
-    const user = await User.findById(user_id).populate("agency.agency_id").lean();
+    const user = await User.findById(req.user._id).populate("agency.agency_id").lean();
     res.status(200).json({ success: true, payload: SignJwt(user) })
 })
 
