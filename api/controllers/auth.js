@@ -298,7 +298,7 @@ const ChangePassword = async (req, res) => StandardApi(req, res, async () => {
 
     const dbOtp = await OTP.findById(otp_id)
     if (!dbOtp) return res.status(401).json({ success: false, msg: "OTP has expired." })
-    if (otp !== dbOtp.otp) return res.status(401).json({ success: false, msg: "Incorrect OTP" })
+    if (otp.toString() !== dbOtp.otp) return res.status(401).json({ success: false, msg: "Incorrect OTP" })
     const newPassword = hashValue(dbOtp.new_password);
     await User.findByIdAndUpdate(dbOtp.user_id, {
         password: newPassword
