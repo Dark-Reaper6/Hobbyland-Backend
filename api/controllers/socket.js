@@ -11,7 +11,6 @@ const GetSocketAuthToken = async (req, res) => StandardApi(req, res, async () =>
         email: user.email
     }, jwtExpiries.socket)
 
-
     res.status(201).json({
         success: true,
         token,

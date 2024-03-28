@@ -220,10 +220,10 @@ const LoginWithGoogle = async (req, res) => StandardApi(req, res, async () => {
     else if (user.two_fa.register_date && user.two_fa.enabled) {
         res.cookie("otp_user_id", user._id, {
             httpOnly: true,
-            sameSite: process.env.DEVELOPMENT_ENV === "PRODUCTION" ? "none" : "lax",
+            sameSite: isProdEnv ? "none" : "lax",
             path: "/",
             domain: "localhost",
-            secure: process.env.DEVELOPMENT_ENV === "PRODUCTION",
+            secure: isProdEnv,
         })
         return res.json({
             success: true,
@@ -275,6 +275,7 @@ const ForgotPassword = async (req, res) => StandardApi(req, res, async () => {
     })
     res.cookie(process.env.OTPID_COOKIE, dbOtp._id, {
         httpOnly: true,
+        partitioned: true,
         sameSite: isProdEnv ? "none" : "lax",
         priority: "high",
         path: "/",
@@ -290,7 +291,7 @@ const ForgotPassword = async (req, res) => StandardApi(req, res, async () => {
 }, { verify_user: false, validationSchema: forgotPasswordSchema })
 
 const ChangePassword = async (req, res) => StandardApi(req, res, async () => {
-    const otp_id = res.cookies?.[process.env.OTPID_COOKIE];
+    const otp_id = req.cookies?.[process.env.OTPID_COOKIE];
     if (!otp_id) return res.status(400).json({ success: false, msg: "Oops! your session doesn't match the otp identifier. Please try again." })
     const { otp } = req.body;
     if (!otp) return res.status(400).json({ success: false, msg: "All valid parameters required. Body Parameters: otp" })
