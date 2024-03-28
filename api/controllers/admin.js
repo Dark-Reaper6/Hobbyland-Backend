@@ -50,14 +50,14 @@ const AdminLogin = async (req, res) => StandardApi(req, res, async () => {
         res.status(200).json({
             success: true,
             msg: "You are Logged in successfully !",
-            payload: SignJwt(user)
+            admin
         })
     }
 }, { verify_user: false, verify_admin: false, validationSchema: adminLoginSchema })
 
 const GetAdmin = async (req, res) => StandardApi(req, res, async () => {
     const admin = await Admin.findById(req.user._id).lean();
-    res.status(200).json({ success: true, payload: SignJwt(admin) })
+    res.status(200).json({ success: true, admin })
 })
 
 const ApproveDocuments = async (req, res) => StandardApi(req, res, async () => {

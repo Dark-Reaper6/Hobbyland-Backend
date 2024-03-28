@@ -44,7 +44,7 @@ const VerifyTotp = async (req, res) => StandardApi(req, res, async () => {
         res.status(200).json({
             success: true,
             msg: "You are signed in successfully!",
-            payload: SignJwt(user)
+            user
         })
     } else return res.status(401).json({
         success: false,
@@ -110,7 +110,7 @@ const Register2fa = async (req, res) => StandardApi(req, res, async () => {
         return res.status(201).json({
             success: true,
             msg: "2 Factor Authentication is Enabled",
-            payload: SignJwt(user)
+            user
         })
     }
     else return res.status(401).json({
@@ -162,7 +162,7 @@ const Update2fa = async (req, res) => StandardApi(req, res, async () => {
         res.status(200).json({
             success: true,
             msg: `Your 2FA has been ${updatedUser.two_fa.enabled ? "enabled" : "disabled"} successfully.`,
-            payload: SignJwt(updatedUser)
+            user: updatedUser
         })
     }
     else return res.status(401).json({

@@ -34,8 +34,8 @@ const CreateAgencyByCriteria = async (req, res) => StandardApi(req, res, async (
 
     res.status(201).json({
         success: true,
-        payload: SignJwt(user),
-        msg: "Your sevice created successfully."
+        msg: "Your sevice created successfully.",
+        user
     })
 
 })

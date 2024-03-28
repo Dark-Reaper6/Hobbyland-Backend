@@ -1,12 +1,11 @@
 const User = require(`../models/user`);
 const Notifications = require("../models/notifications");
 const StandardApi = require("../middlewares/standard-api");
-const { SignJwt } = require("../../helpers/cyphers");
 const { userUpdateSchema } = require("../../validation-schemas/user");
 
 const GetMe = async (req, res) => StandardApi(req, res, async () => {
     const user = await User.findById(req.user._id).populate("agency.agency_id").lean();
-    res.status(200).json({ success: true, payload: SignJwt(user) })
+    res.status(200).json({ success: true, user })
 })
 
 const UpdateUser = async (req, res) => StandardApi(req, res, async () => {
@@ -26,7 +25,7 @@ const UpdateUser = async (req, res) => StandardApi(req, res, async () => {
         ...(user.agency && { agency: user.agency }),
         ...(user.account_type && { account_type: user.account_type })
     }, (remember_me && remember_me === true) ? jwtExpiries.extended : jwtExpiries.default);
-    res.status(200).json({ success: true, payload: SignJwt(user) })
+    res.status(200).json({ success: true, user })
 }, { validationSchema: userUpdateSchema })
 
 const GetUserNotifications = async (req, res) => StandardApi(req, res, async () => {

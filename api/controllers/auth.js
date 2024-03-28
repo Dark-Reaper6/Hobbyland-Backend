@@ -93,7 +93,7 @@ const SignUpWithGoogle = async (req, res) => StandardApi(req, res, async () => {
     res.status(200).json({
         success: true,
         msg: "You are Resgistered successfully !",
-        payload: SignJwt(user)
+        user
     })
 }, { verify_user: false, validationSchema: googleSignupSchema })
 
@@ -142,7 +142,7 @@ const SignupCallback = async (req, res) => StandardApi(req, res, async () => {
         res.status(200).json({
             success: true,
             msg: "You're Resgistered successfully !",
-            payload: SignJwt(user),
+            user
         })
     }
 }, { verify_user: false })
@@ -193,7 +193,7 @@ const Login = async (req, res) => StandardApi(req, res, async () => {
         res.status(200).json({
             success: true,
             msg: "You are Logged in successfully !",
-            payload: SignJwt(user)
+            user
         })
     }
 }, { verify_user: false, validationSchema: loginSchema })
@@ -252,7 +252,7 @@ const LoginWithGoogle = async (req, res) => StandardApi(req, res, async () => {
     res.status(200).json({
         success: true,
         msg: "You are Resgistered successfully !",
-        payload: SignJwt(user)
+        user
     })
 }, { verify_user: false })
 
